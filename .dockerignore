@@ -1,2 +1,11 @@
 /vendor/
 /var/
+/.env
+/.env.local
+/.env.*.local
+.git
+.github
+*.md
+!README.md
+compose*.yaml
+assets/music-source/
