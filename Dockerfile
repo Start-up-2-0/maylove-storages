@@ -16,6 +16,8 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 WORKDIR /app
 
 ENV COMPOSER_ALLOW_SUPERUSER=1
+ENV APP_ENV=prod
+ENV APP_DEBUG=0
 
 COPY composer.json composer.lock symfony.lock ./
 RUN composer install --no-dev --no-scripts --no-interaction --prefer-dist
