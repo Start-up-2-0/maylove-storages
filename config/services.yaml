@@ -1,0 +1,41 @@
+parameters:
+
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+
+    App\:
+        resource: '../src/'
+        exclude:
+            - '../src/DependencyInjection/'
+            - '../src/Kernel.php'
+
+    App\Infrastructure\Driver\LocalFilesystemDriver:
+        arguments:
+            $root: '%storage.root%'
+
+    App\Domain\File\StorageDriverInterface: '@App\Infrastructure\Driver\LocalFilesystemDriver'
+
+    App\Infrastructure\Security\HmacTokenCodec:
+        arguments:
+            $secret: '%storage.service_token_secret%'
+
+    App\Application\Upload\CreateUploadTicketService:
+        arguments:
+            $publicUrl: '%storage.public_url%'
+            $defaultTtlSeconds: '%storage.upload_ticket_ttl_seconds%'
+
+    App\Application\Platform\SeedMusicLibraryCommand:
+        arguments:
+            $projectDir: '%kernel.project_dir%'
+
+    App\Application\Url\FileUrlService:
+        arguments:
+            $publicUrl: '%storage.public_url%'
+            $minTtlSeconds: '%storage.url_min_ttl_seconds%'
+            $maxTtlSeconds: '%storage.url_max_ttl_seconds%'
+
+    App\Application\Og\GenerateOgImageService:
+        arguments:
+            $publicUrl: '%storage.public_url%'

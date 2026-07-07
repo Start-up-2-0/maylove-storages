@@ -1,0 +1,5 @@
+serve_controllers:
+    resource:
+        path: ../../src/UI/Http/Controller/Serve/
+        namespace: App\UI\Http\Controller\Serve
+    type: attribute

@@ -1,0 +1,8 @@
+parameters:
+    storage.root: '%env(STORAGE_ROOT)%'
+    storage.public_url: '%env(STORAGE_PUBLIC_URL)%'
+    storage.service_token_secret: '%env(SERVICE_TOKEN_SECRET)%'
+    storage.upload_max_size_mb: '%env(int:UPLOAD_MAX_SIZE_MB)%'
+    storage.upload_ticket_ttl_seconds: 900
+    storage.url_min_ttl_seconds: 900
+    storage.url_max_ttl_seconds: 86400

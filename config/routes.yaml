@@ -1,0 +1,8 @@
+api:
+    resource: routes/api.yaml
+
+internal:
+    resource: routes/internal.yaml
+
+serve:
+    resource: routes/serve.yaml

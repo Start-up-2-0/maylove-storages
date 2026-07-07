@@ -1,0 +1,5 @@
+internal_controllers:
+    resource:
+        path: ../../src/UI/Http/Controller/Internal/
+        namespace: App\UI\Http\Controller\Internal
+    type: attribute

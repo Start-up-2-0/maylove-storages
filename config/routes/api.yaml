@@ -1,0 +1,9 @@
+api_controllers:
+    resource:
+        path: ../../src/UI/Http/Controller/
+        namespace: App\UI\Http\Controller
+    type: attribute
+    prefix: /api/v1
+    exclude:
+        - ../../src/UI/Http/Controller/Internal/
+        - ../../src/UI/Http/Controller/Serve/
