@@ -28,8 +28,8 @@ RUN mkdir -p var/cache var/log \
     && composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader --no-scripts \
     && composer dump-autoload --optimize --classmap-authoritative --no-dev
 
-COPY docker/entrypoint.sh docker/start-web.sh docker/pre-deploy.sh /usr/local/bin/
-RUN chmod +x /usr/local/bin/entrypoint.sh /usr/local/bin/start-web.sh /usr/local/bin/pre-deploy.sh
+COPY docker/entrypoint.sh docker/start-web.sh docker/pre-deploy.sh docker/migrate.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/entrypoint.sh /usr/local/bin/start-web.sh /usr/local/bin/pre-deploy.sh /usr/local/bin/migrate.sh
 
 ENV PORT=8081
 EXPOSE 8081

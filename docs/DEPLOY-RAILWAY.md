@@ -34,6 +34,14 @@ Sem volume, uploads e OG images são perdidos a cada redeploy.
 | `DATABASE_URL` | MySQL 8 (banco `maylove_storages`, separado da API) |
 | `UPLOAD_MAX_SIZE_MB` | ex.: `50` |
 
+## Migrations
+
+Pendentes são aplicadas no **pre-deploy** e novamente no **start** do serviço web (`docker/migrate.sh`), antes do PHP subir.
+
+```
+DATABASE_URL=${{MySQL.MYSQL_PRIVATE_URL}}
+```
+
 ## Healthcheck
 
 `GET /api/v1/health` — definido em `railway.toml`.
