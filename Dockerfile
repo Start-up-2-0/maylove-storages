@@ -16,8 +16,6 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 WORKDIR /app
 
 ENV COMPOSER_ALLOW_SUPERUSER=1
-ENV APP_ENV=prod
-ENV APP_DEBUG=0
 
 COPY composer.json composer.lock symfony.lock ./
 RUN composer install --no-dev --no-scripts --no-interaction --prefer-dist
@@ -28,8 +26,8 @@ RUN mkdir -p var/cache var/log \
     && composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader --no-scripts \
     && composer dump-autoload --optimize --classmap-authoritative --no-dev
 
-COPY docker/entrypoint.sh docker/start-web.sh /usr/local/bin/
-RUN chmod +x /usr/local/bin/entrypoint.sh /usr/local/bin/start-web.sh
+COPY docker/entrypoint.sh docker/start-web.sh docker/pre-deploy.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/entrypoint.sh /usr/local/bin/start-web.sh /usr/local/bin/pre-deploy.sh
 
 ENV PORT=8081
 EXPOSE 8081
