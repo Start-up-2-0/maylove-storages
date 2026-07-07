@@ -8,10 +8,6 @@ declare(strict_types=1);
  */
 $projectDir = \dirname(__DIR__);
 
-if (!\is_file($projectDir.'/.env')) {
-    $_SERVER['APP_RUNTIME_OPTIONS'] ??= \json_encode(['disable_dotenv' => true], \JSON_THROW_ON_ERROR);
-}
-
 $environ = @\file_get_contents('/proc/self/environ');
 if (\is_string($environ) && $environ !== '') {
     foreach (\explode("\0", $environ) as $pair) {
@@ -33,4 +29,18 @@ if (\is_string($environ) && $environ !== '') {
             $_ENV[$key] ??= $value;
         }
     }
+}
+
+if (!\is_file($projectDir.'/.env')) {
+    $options = $_SERVER['APP_RUNTIME_OPTIONS'] ?? $_ENV['APP_RUNTIME_OPTIONS'] ?? [];
+    if (\is_string($options)) {
+        $decoded = \json_decode($options, true);
+        $options = \is_array($decoded) ? $decoded : [];
+    }
+    if (!\is_array($options)) {
+        $options = [];
+    }
+
+    // Symfony 7.2: APP_RUNTIME_OPTIONS deve ser array (sem json_decode no autoload_runtime.php).
+    $_SERVER['APP_RUNTIME_OPTIONS'] = $options + ['disable_dotenv' => true];
 }
