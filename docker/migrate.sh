@@ -28,5 +28,17 @@ if [ -z "${DATABASE_URL}" ]; then
   exit 1
 fi
 
+if [ -z "${STORAGE_ROOT}" ]; then
+  echo ""
+  echo "ERROR: STORAGE_ROOT não está definida."
+  echo ""
+  echo "Monte um volume em /var/maylove/storage e defina:"
+  echo "  STORAGE_ROOT=/var/maylove/storage"
+  echo ""
+  exit 1
+fi
+
+mkdir -p "${STORAGE_ROOT}"
+
 echo "Running pending Doctrine migrations..."
 php bin/console doctrine:migrations:migrate --no-interaction --allow-no-migration

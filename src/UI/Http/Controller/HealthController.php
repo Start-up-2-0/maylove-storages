@@ -17,15 +17,6 @@ final class HealthController extends AbstractController
     ) {
     }
 
-    #[Route('/live', name: 'live', methods: ['GET'])]
-    public function live(): JsonResponse
-    {
-        return $this->json([
-            'status' => 'ok',
-            'service' => 'maylove-storages',
-        ]);
-    }
-
     #[Route('', name: 'check', methods: ['GET'])]
     public function __invoke(): JsonResponse
     {
