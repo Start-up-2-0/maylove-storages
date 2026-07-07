@@ -31,8 +31,8 @@ RUN mkdir -p var/cache var/log \
 COPY docker/entrypoint.sh docker/start-web.sh docker/pre-deploy.sh docker/migrate.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/entrypoint.sh /usr/local/bin/start-web.sh /usr/local/bin/pre-deploy.sh /usr/local/bin/migrate.sh
 
-ENV PORT=8081
-EXPOSE 8081
+# Railway injeta PORT em runtime; não fixar porta diferente por serviço.
+EXPOSE 8080
 
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 CMD ["/usr/local/bin/start-web.sh"]

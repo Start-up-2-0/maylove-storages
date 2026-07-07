@@ -36,7 +36,7 @@ Sem volume, uploads e OG images são perdidos a cada redeploy.
 
 ## Migrations
 
-Pendentes são aplicadas no **pre-deploy** e novamente no **start** do serviço web (`docker/migrate.sh`), antes do PHP subir.
+Pendentes são aplicadas no **pre-deploy** e em background no **start** (`docker/migrate.sh`), depois que o PHP já está escutando na `PORT`.
 
 ```
 DATABASE_URL=${{MySQL.MYSQL_PRIVATE_URL}}
@@ -44,7 +44,12 @@ DATABASE_URL=${{MySQL.MYSQL_PRIVATE_URL}}
 
 ## Healthcheck
 
-`GET /api/v1/health` — definido em `railway.toml`.
+- Railway (liveness): `GET /api/v1/health/live`
+- Monitoramento: `GET /api/v1/health`
+
+## Porta
+
+O serviço escuta em `0.0.0.0:$PORT`. Confira o target port em Settings → Networking. Ver [Application Failed to Respond](https://docs.railway.com/networking/troubleshooting/application-failed-to-respond).
 
 ## Rede interna
 
