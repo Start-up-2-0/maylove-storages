@@ -31,7 +31,7 @@ Sem volume, uploads e OG images são perdidos a cada redeploy.
 | `STORAGE_ROOT` | caminho do volume |
 | `STORAGE_PUBLIC_URL` | URL pública para servir arquivos |
 | `SERVICE_TOKEN_SECRET` | igual a `STORAGE_SERVICE_TOKEN_SECRET` na API |
-| `DATABASE_URL` | SQLite ou MySQL (metadados) |
+| `DATABASE_URL` | MySQL 8 (banco `maylove_storages`, separado da API) |
 | `UPLOAD_MAX_SIZE_MB` | ex.: `50` |
 
 ## Healthcheck

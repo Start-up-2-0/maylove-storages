@@ -8,7 +8,7 @@ RUN apk add --no-cache \
         libpng-dev \
         $PHPIZE_DEPS \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install -j"$(nproc)" intl opcache gd pdo pdo_sqlite \
+    && docker-php-ext-install -j"$(nproc)" intl opcache gd pdo pdo_mysql \
     && apk del $PHPIZE_DEPS
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
