@@ -3,7 +3,7 @@ builder = "DOCKERFILE"
 dockerfilePath = "Dockerfile"
 
 [deploy]
-healthcheckPath = "/api/v1/health/live"
+healthcheckPath = "/health-live.php"
 healthcheckTimeout = 120
 preDeployCommand = "/usr/local/bin/pre-deploy.sh"
 restartPolicyType = "ON_FAILURE"
