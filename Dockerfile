@@ -11,6 +11,11 @@ RUN apk add --no-cache \
     && docker-php-ext-install -j"$(nproc)" intl opcache gd pdo pdo_mysql \
     && apk del $PHPIZE_DEPS
 
+RUN mkdir -p /usr/local/lib/php
+
+COPY docker/php-railway.ini /usr/local/etc/php/conf.d/99-railway.ini
+COPY docker/symfony-railway-env.php /usr/local/lib/php/symfony-railway-env.php
+
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 WORKDIR /app
