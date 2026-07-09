@@ -9,9 +9,6 @@ final class HmacTokenCodec
     public function __construct(
         private readonly string $secret,
     ) {
-        if (strlen($this->secret) < 32) {
-            throw new \InvalidArgumentException('Token secret deve possuir ao menos 32 caracteres.');
-        }
     }
 
     /**
@@ -19,6 +16,7 @@ final class HmacTokenCodec
      */
     public function encode(array $payload): string
     {
+        $this->assertSecretConfigured();
         $payloadJson = json_encode($payload, JSON_THROW_ON_ERROR);
         $payloadEncoded = $this->base64UrlEncode($payloadJson);
         $signature = $this->base64UrlEncode(hash_hmac('sha256', $payloadEncoded, $this->secret, true));
@@ -31,6 +29,10 @@ final class HmacTokenCodec
      */
     public function decode(string $token): ?array
     {
+        if (!$this->isSecretConfigured()) {
+            return null;
+        }
+
         $parts = explode('.', $token);
         if (count($parts) !== 2) {
             return null;
@@ -73,5 +75,17 @@ final class HmacTokenCodec
         }
 
         return $decoded;
+    }
+
+    private function isSecretConfigured(): bool
+    {
+        return strlen($this->secret) >= 32;
+    }
+
+    private function assertSecretConfigured(): void
+    {
+        if (!$this->isSecretConfigured()) {
+            throw new \InvalidArgumentException('Token secret deve possuir ao menos 32 caracteres.');
+        }
     }
 }

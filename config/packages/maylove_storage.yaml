@@ -1,8 +1,11 @@
 parameters:
     env(STORAGE_ROOT): '/var/maylove/storage'
     env(STORAGE_PUBLIC_URL): 'http://localhost'
-    env(SERVICE_TOKEN_SECRET): 'build'
+    env(SERVICE_TOKEN_SECRET): 'build-placeholder-secret-min-32-chars'
     env(UPLOAD_MAX_SIZE_MB): '50'
+    env(DEFAULT_URI): 'http://localhost'
+    cors_allow_origin_default: '^https?://.*$'
+    default_uri: '%env(DEFAULT_URI)%'
     storage.root: '%env(STORAGE_ROOT)%'
     storage.public_url: '%env(STORAGE_PUBLIC_URL)%'
     storage.service_token_secret: '%env(SERVICE_TOKEN_SECRET)%'
