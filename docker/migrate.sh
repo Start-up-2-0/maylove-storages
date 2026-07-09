@@ -1,6 +1,8 @@
 #!/bin/sh
 set -e
 
+APP_ENV="$(printf '%s' "${APP_ENV:-}" | tr -d '"')"
+
 if [ "${APP_ENV}" != "prod" ]; then
   echo ""
   echo "ERROR: APP_ENV deve ser exatamente \"prod\" (valor atual: \"${APP_ENV:-<vazio>}\")."

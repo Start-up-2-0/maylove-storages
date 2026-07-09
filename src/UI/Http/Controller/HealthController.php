@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\UI\Http\Controller;
 
 use App\Domain\File\StorageDriverInterface;
+use Doctrine\DBAL\Connection;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;
@@ -14,6 +15,7 @@ final class HealthController extends AbstractController
 {
     public function __construct(
         private readonly StorageDriverInterface $storageDriver,
+        private readonly Connection $connection,
     ) {
     }
 
@@ -21,14 +23,31 @@ final class HealthController extends AbstractController
     public function __invoke(): JsonResponse
     {
         $storageRoot = $this->storageDriver->isWritable() ? 'ok' : 'error';
-        $status = $storageRoot === 'ok' ? 'ok' : 'degraded';
+        $database = $this->checkDatabase();
+        $checks = [
+            'storage_root' => $storageRoot,
+            'database' => $database,
+        ];
+
+        $hasFailure = in_array('error', $checks, true);
+        $status = $hasFailure ? 'degraded' : 'ok';
 
         return $this->json([
             'status' => $status,
             'service' => 'maylove-storages',
-            'checks' => [
-                'storage_root' => $storageRoot,
-            ],
-        ], $status === 'ok' ? 200 : 503);
+            'checks' => $checks,
+        ], $hasFailure ? 503 : 200);
+    }
+
+    private function checkDatabase(): string
+    {
+        try {
+            $this->connection->executeQuery('SELECT 1');
+            $this->connection->executeQuery('SELECT 1 FROM files LIMIT 1');
+
+            return 'ok';
+        } catch (\Throwable) {
+            return 'error';
+        }
     }
 }

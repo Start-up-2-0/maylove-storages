@@ -36,6 +36,8 @@ Sem volume, uploads e OG images são perdidos a cada redeploy.
 | `UPLOAD_MAX_SIZE_MB` | ex.: `50` |
 | `CORS_ALLOW_ORIGIN` | regex do domínio do app (ex.: `^https://maylove-app-staging\.up\.railway\.app$`) |
 
+**Importante:** no Railway, defina valores **sem aspas** (`prod`, não `"prod"`). Aspas no valor impedem as migrations e a tabela `files` não é criada.
+
 ## Migrations
 
 Pendentes são aplicadas no **pre-deploy** e em background no **start** (`docker/migrate.sh`), depois que o PHP já está escutando na `PORT`.

@@ -1,6 +1,9 @@
 doctrine:
     dbal:
         url: '%env(resolve:DATABASE_URL)%'
+        types:
+            uuid: App\Infrastructure\Persistence\Doctrine\UuidCharType
+        server_version: '8.0'
     orm:
         auto_generate_proxy_classes: true
         enable_lazy_ghost_objects: true
