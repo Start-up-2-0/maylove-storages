@@ -16,13 +16,45 @@
 
 ## Volume persistente (obrigatório)
 
-Monte um volume Railway em `/var/maylove/storage` e configure:
+Sem volume, **todos os uploads são perdidos a cada redeploy** da imagem Docker.
 
-```
-STORAGE_ROOT=/var/maylove/storage
+### Configurar no Railway (uma vez por ambiente)
+
+1. Abra o serviço **maylove-storages** → **Settings** → **Volumes** → **Add Volume**
+2. **Mount path:** `/var/maylove/storage`
+3. Variável de ambiente:
+   ```
+   STORAGE_ROOT=/var/maylove/storage
+   ```
+
+O Railway injeta `RAILWAY_VOLUME_MOUNT_PATH` automaticamente. O bootstrap do container usa esse caminho e **falha o deploy** se estiver em produção no Railway sem volume anexado.
+
+### Via CLI
+
+```bash
+railway link
+railway volume add -m /var/maylove/storage
 ```
 
-Sem volume, uploads e OG images são perdidos a cada redeploy.
+Confirme com `railway volume list`. O mount path deve ser exatamente `/var/maylove/storage` (igual ao `STORAGE_ROOT`).
+
+### Como validar
+
+Após o deploy, `GET /api/v1/health` deve retornar:
+
+```json
+{
+  "checks": {
+    "storage_root": "ok",
+    "storage_persistent": "ok",
+    "database": "ok"
+  }
+}
+```
+
+Se `storage_persistent` for `error`, o volume não está anexado.
+
+**Nota:** volumes não são montados durante o pre-deploy; migrations de banco rodam sem acesso ao disco. O storage é validado apenas na subida do container (`start-web.sh`).
 
 ## Variáveis críticas
 

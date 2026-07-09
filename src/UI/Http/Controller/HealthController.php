@@ -24,8 +24,10 @@ final class HealthController extends AbstractController
     {
         $storageRoot = $this->storageDriver->isWritable() ? 'ok' : 'error';
         $database = $this->checkDatabase();
+        $storagePersistent = $this->isStoragePersistent() ? 'ok' : 'error';
         $checks = [
             'storage_root' => $storageRoot,
+            'storage_persistent' => $storagePersistent,
             'database' => $database,
         ];
 
@@ -49,5 +51,20 @@ final class HealthController extends AbstractController
         } catch (\Throwable) {
             return 'error';
         }
+    }
+
+    private function isStoragePersistent(): bool
+    {
+        $mountPath = getenv('RAILWAY_VOLUME_MOUNT_PATH');
+        if (!is_string($mountPath) || $mountPath === '') {
+            return getenv('RAILWAY_ENVIRONMENT') === false;
+        }
+
+        $storageRoot = getenv('STORAGE_ROOT');
+        if (is_string($storageRoot) && $storageRoot !== '' && $storageRoot !== $mountPath) {
+            return false;
+        }
+
+        return is_dir($mountPath) && is_writable($mountPath);
     }
 }

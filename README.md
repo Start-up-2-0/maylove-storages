@@ -66,4 +66,6 @@ No Docker, o entrypoint roda o seed automaticamente na primeira subida.
 ## MVP
 
 Driver: `LocalFilesystemDriver` em volume `/var/maylove/storage`  
+
+**Produção (Railway):** anexe um volume em `/var/maylove/storage` e defina `STORAGE_ROOT=/var/maylove/storage`. Sem volume, arquivos são perdidos a cada redeploy. Ver [docs/DEPLOY-RAILWAY.md](docs/DEPLOY-RAILWAY.md).
 **Sem** AWS S3 / GCS no MVP.

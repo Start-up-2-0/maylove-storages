@@ -1,3 +1,4 @@
 #!/bin/sh
 set -e
-exec /usr/local/bin/migrate.sh
+# Pre-deploy roda sem volume montado — apenas migrations de banco.
+exec /usr/local/bin/migrate-db.sh

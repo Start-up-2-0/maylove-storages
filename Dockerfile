@@ -32,8 +32,8 @@ RUN mkdir -p var/cache var/log \
     && composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader --no-scripts \
     && composer dump-autoload --optimize --classmap-authoritative --no-dev
 
-COPY docker/entrypoint.sh docker/start-web.sh docker/pre-deploy.sh docker/migrate.sh /usr/local/bin/
-RUN chmod +x /usr/local/bin/entrypoint.sh /usr/local/bin/start-web.sh /usr/local/bin/pre-deploy.sh /usr/local/bin/migrate.sh
+COPY docker/entrypoint.sh docker/start-web.sh docker/pre-deploy.sh docker/migrate.sh docker/migrate-db.sh docker/storage-bootstrap.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/entrypoint.sh /usr/local/bin/start-web.sh /usr/local/bin/pre-deploy.sh /usr/local/bin/migrate.sh /usr/local/bin/migrate-db.sh /usr/local/bin/storage-bootstrap.sh
 
 # Railway injeta PORT em runtime; não fixar porta diferente por serviço.
 EXPOSE 8080
