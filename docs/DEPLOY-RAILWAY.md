@@ -33,6 +33,7 @@ Sem volume, uploads e OG images são perdidos a cada redeploy.
 | `SERVICE_TOKEN_SECRET` | igual a `STORAGE_SERVICE_TOKEN_SECRET` na API |
 | `DATABASE_URL` | MySQL 8 (banco `maylove_storages`, separado da API) |
 | `UPLOAD_MAX_SIZE_MB` | ex.: `50` |
+| `CORS_ALLOW_ORIGIN` | regex do domínio do app (ex.: `^https://maylove-app-staging\.up\.railway\.app$`) |
 
 ## Migrations
 
