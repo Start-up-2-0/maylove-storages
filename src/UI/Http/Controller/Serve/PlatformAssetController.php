@@ -6,8 +6,9 @@ namespace App\UI\Http\Controller\Serve;
 
 use App\Domain\File\StorageDriverInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\StreamedResponse;
+use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\Routing\Attribute\Route;
 
 final class PlatformAssetController extends AbstractController
@@ -30,14 +31,18 @@ final class PlatformAssetController extends AbstractController
             return new Response('Arquivo não encontrado.', Response::HTTP_NOT_FOUND);
         }
 
-        return new StreamedResponse(function () use ($relativePath): void {
-            $stream = $this->storageDriver->readStream($relativePath);
-            fpassthru($stream);
-            fclose($stream);
-        }, Response::HTTP_OK, [
-            'Content-Type' => $this->guessMimeType($filePath),
-            'Cache-Control' => 'public, max-age=86400',
-        ]);
+        $absolutePath = $this->storageDriver->absolutePath($relativePath);
+
+        $response = new BinaryFileResponse($absolutePath);
+        $response->headers->set('Content-Type', $this->guessMimeType($filePath));
+        $response->headers->set('Cache-Control', 'public, max-age=86400');
+        $response->headers->set('Accept-Ranges', 'bytes');
+        $response->setContentDisposition(
+            ResponseHeaderBag::DISPOSITION_INLINE,
+            basename($absolutePath),
+        );
+
+        return $response;
     }
 
     private function guessMimeType(string $filePath): string

@@ -9,9 +9,10 @@ use App\Domain\File\Exception\StorageException;
 use App\Domain\File\StorageDriverInterface;
 use App\UI\Http\ApiResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\StreamedResponse;
+use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\Routing\Attribute\Route;
 
 final class FileServeController extends AbstractController
@@ -37,14 +38,21 @@ final class FileServeController extends AbstractController
         }
 
         $mimeType = $resolved['file']->getMimeType() ?? 'application/octet-stream';
+        $absolutePath = $this->storageDriver->absolutePath($resolved['path']);
 
-        return new StreamedResponse(function () use ($resolved): void {
-            $stream = $this->storageDriver->readStream($resolved['path']);
-            fpassthru($stream);
-            fclose($stream);
-        }, Response::HTTP_OK, [
-            'Content-Type' => $mimeType,
-            'Cache-Control' => 'private, max-age=60',
-        ]);
+        if (!is_file($absolutePath)) {
+            return ApiResponse::error('Arquivo não encontrado.', 'FILE_NOT_FOUND', Response::HTTP_NOT_FOUND);
+        }
+
+        $response = new BinaryFileResponse($absolutePath);
+        $response->headers->set('Content-Type', $mimeType);
+        $response->headers->set('Cache-Control', 'private, max-age=60');
+        $response->headers->set('Accept-Ranges', 'bytes');
+        $response->setContentDisposition(
+            ResponseHeaderBag::DISPOSITION_INLINE,
+            basename($absolutePath),
+        );
+
+        return $response;
     }
 }
