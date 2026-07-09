@@ -7,10 +7,12 @@ RUN apk add --no-cache \
         libjpeg-turbo-dev \
         libpng-dev \
         ffmpeg \
-        yt-dlp \
+        python3 \
+        py3-pip \
         $PHPIZE_DEPS \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j"$(nproc)" intl opcache gd pdo pdo_mysql \
+    && pip3 install --break-system-packages --no-cache-dir yt-dlp \
     && apk del $PHPIZE_DEPS
 
 COPY docker/php-railway.ini /usr/local/etc/php/conf.d/99-railway.ini
