@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Confirm;
 
+use App\Application\Media\AudioProbeService;
 use App\Domain\File\Exception\StorageException;
 use App\Domain\File\FileStatus;
 use App\Domain\File\StorageDriverInterface;
@@ -20,6 +21,7 @@ final class ConfirmFileService
         private readonly StorageDriverInterface $storageDriver,
         private readonly StoragePathResolver $pathResolver,
         private readonly MimeMagicValidator $mimeValidator,
+        private readonly AudioProbeService $audioProbeService,
     ) {
     }
 
@@ -52,8 +54,10 @@ final class ConfirmFileService
         $this->moveFile($pendingPath, $finalPath);
 
         $sha256 = hash_file('sha256', $this->storageDriver->absolutePath($finalPath)) ?: '';
+        $sizeBytes = (int) filesize($this->storageDriver->absolutePath($finalPath));
         $file->setRelativePath($finalPath);
         $file->setMimeType($expectedMime);
+        $file->setSizeBytes($sizeBytes);
         $file->setSha256($sha256);
         $file->markActive();
         $this->fileRepository->save($file);
@@ -89,7 +93,7 @@ final class ConfirmFileService
     {
         $dimensions = $this->resolveImageDimensions($file, $mediaType);
 
-        return [
+        $payload = [
             'file_id' => (string) $file->getId(),
             'mime_type' => $file->getMimeType(),
             'size_bytes' => $file->getSizeBytes(),
@@ -99,6 +103,14 @@ final class ConfirmFileService
             'thumbnail_url' => null,
             'path' => $file->getRelativePath(),
         ];
+
+        if ($mediaType === 'audio') {
+            $payload['duration_seconds'] = $this->audioProbeService->probeDuration(
+                $this->storageDriver->absolutePath($file->getRelativePath()),
+            );
+        }
+
+        return $payload;
     }
 
     /**

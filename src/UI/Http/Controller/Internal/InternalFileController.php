@@ -7,7 +7,10 @@ namespace App\UI\Http\Controller\Internal;
 use App\Application\Confirm\ConfirmFileService;
 use App\Application\Delete\DeleteFileService;
 use App\Application\List\ListFilesService;
+use App\Application\Media\ExtractAudioFromVideoService;
+use App\Application\Media\ImportYoutubeAudioService;
 use App\Application\Og\GenerateOgImageService;
+use App\Domain\File\Exception\StorageException;
 use App\Application\Upload\CreateUploadTicketService;
 use App\Application\Url\FileUrlService;
 use App\Infrastructure\Security\ServiceTokenValidator;
@@ -29,6 +32,8 @@ final class InternalFileController extends AbstractController
         private readonly ListFilesService $listFilesService,
         private readonly FileUrlService $fileUrlService,
         private readonly GenerateOgImageService $generateOgImageService,
+        private readonly ExtractAudioFromVideoService $extractAudioFromVideoService,
+        private readonly ImportYoutubeAudioService $importYoutubeAudioService,
     ) {
     }
 
@@ -132,6 +137,46 @@ final class InternalFileController extends AbstractController
             title: (string) ($payload['title'] ?? 'MayLove'),
             colorPrimary: (string) ($payload['color_primary'] ?? '#d94f7a'),
         );
+
+        return ApiResponse::success($result, Response::HTTP_CREATED);
+    }
+
+    #[Route('/files/{fileId}/extract-audio', name: 'files_extract_audio', methods: ['POST'])]
+    public function extractAudio(string $fileId, Request $request): JsonResponse
+    {
+        if (!$this->isAuthorized($request)) {
+            return ApiResponse::error('Não autorizado.', 'UNAUTHORIZED', Response::HTTP_UNAUTHORIZED);
+        }
+
+        try {
+            $result = $this->extractAudioFromVideoService->extract($fileId);
+        } catch (StorageException $exception) {
+            return ApiResponse::error($exception->getMessage(), $exception->getErrorCode(), $exception->getStatusCode());
+        }
+
+        return ApiResponse::success($result);
+    }
+
+    #[Route('/youtube-audio', name: 'youtube_audio', methods: ['POST'])]
+    public function importYoutubeAudio(Request $request): JsonResponse
+    {
+        if (!$this->isAuthorized($request)) {
+            return ApiResponse::error('Não autorizado.', 'UNAUTHORIZED', Response::HTTP_UNAUTHORIZED);
+        }
+
+        /** @var array<string, mixed> $payload */
+        $payload = json_decode($request->getContent(), true) ?? [];
+
+        try {
+            $result = $this->importYoutubeAudioService->import(
+                context: (string) ($payload['context'] ?? ''),
+                contextId: (string) ($payload['context_id'] ?? ''),
+                url: (string) ($payload['url'] ?? ''),
+                userId: isset($payload['user_id']) ? (string) $payload['user_id'] : null,
+            );
+        } catch (StorageException $exception) {
+            return ApiResponse::error($exception->getMessage(), $exception->getErrorCode(), $exception->getStatusCode());
+        }
 
         return ApiResponse::success($result, Response::HTTP_CREATED);
     }

@@ -39,3 +39,7 @@ services:
     App\Application\Og\GenerateOgImageService:
         arguments:
             $publicUrl: '%storage.public_url%'
+
+    App\Application\Media\ImportYoutubeAudioService:
+        arguments:
+            $storageRoot: '%storage.root%'
