@@ -1,6 +1,6 @@
 # Fonte da biblioteca musical
 
-Coloque aqui os MP3 reais da biblioteca MayLove, **um arquivo por slug**:
+Coloque aqui os MP3 reais da biblioteca MayLov, **um arquivo por slug**:
 
 ```
 acorde-do-coracao.mp3

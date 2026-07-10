@@ -14,7 +14,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 
 #[AsCommand(
     name: 'app:seed-music-library',
-    description: 'Gera os 15 MP3 da biblioteca MayLove em platform/music/ (placeholder ou arquivos reais).',
+    description: 'Gera os 15 MP3 da biblioteca MayLov em platform/music/ (placeholder ou arquivos reais).',
 )]
 final class SeedMusicLibraryCommand extends Command
 {

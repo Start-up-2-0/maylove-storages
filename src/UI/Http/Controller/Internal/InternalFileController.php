@@ -134,8 +134,8 @@ final class InternalFileController extends AbstractController
         $result = $this->generateOgImageService->generate(
             tributeId: (string) ($payload['tribute_id'] ?? ''),
             sourceFileId: isset($payload['source_file_id']) ? (string) $payload['source_file_id'] : null,
-            title: (string) ($payload['title'] ?? 'MayLove'),
-            colorPrimary: (string) ($payload['color_primary'] ?? '#d94f7a'),
+            title: (string) ($payload['title'] ?? 'MayLov'),
+            colorPrimary: (string) ($payload['color_primary'] ?? '#e11d7a'),
         );
 
         return ApiResponse::success($result, Response::HTTP_CREATED);

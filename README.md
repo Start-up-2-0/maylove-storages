@@ -1,6 +1,6 @@
 # maylove-storages
 
-API independente de armazenamento de arquivos do MayLove.
+API independente de armazenamento de arquivos do MayLov.
 
 ## Responsabilidade
 

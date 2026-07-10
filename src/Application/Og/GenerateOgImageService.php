@@ -165,7 +165,7 @@ final class GenerateOgImageService
         $textColor = imagecolorallocate($canvas, 255, 255, 255);
         $safeTitle = trim(mb_substr($title, 0, 80));
         if ($safeTitle === '') {
-            $safeTitle = 'MayLove';
+            $safeTitle = 'MayLov';
         }
 
         imagestring($canvas, 5, 32, self::HEIGHT - 110, $safeTitle, $textColor);
@@ -178,7 +178,7 @@ final class GenerateOgImageService
     private function parseHexColor(string $color): array
     {
         if (preg_match('/^#?([0-9A-Fa-f]{6})$/', $color, $matches) !== 1) {
-            return [217, 79, 122];
+            return [225, 29, 122];
         }
 
         $hex = $matches[1];
