@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Application\Confirm;
 
+use App\Application\Media\AudioOptimizationService;
 use App\Application\Media\AudioProbeService;
+use App\Application\Media\ImageOptimizationService;
 use App\Domain\File\Exception\StorageException;
 use App\Domain\File\FileStatus;
 use App\Domain\File\StorageDriverInterface;
@@ -22,6 +24,8 @@ final class ConfirmFileService
         private readonly StoragePathResolver $pathResolver,
         private readonly MimeMagicValidator $mimeValidator,
         private readonly AudioProbeService $audioProbeService,
+        private readonly ImageOptimizationService $imageOptimizationService,
+        private readonly AudioOptimizationService $audioOptimizationService,
     ) {
     }
 
@@ -50,7 +54,35 @@ final class ConfirmFileService
             throw new StorageException('MIME inválido para o arquivo enviado.', 'INVALID_MIME', 422);
         }
 
-        $finalPath = $this->pathResolver->buildFinalPath($file, $mediaType);
+        $outputExtension = null;
+        $durationSeconds = null;
+
+        if ($mediaType === 'photo') {
+            $optimized = $this->imageOptimizationService->optimize($absolutePath, $expectedMime);
+            $absolutePath = $optimized['absolute_path'];
+            $expectedMime = $optimized['mime_type'];
+            $outputExtension = $optimized['extension'];
+            if ($absolutePath !== $this->storageDriver->absolutePath($pendingPath)) {
+                $this->storageDriver->delete($pendingPath);
+                $pendingPath = $this->replaceExtension($pendingPath, $outputExtension);
+                $this->moveOptimizedToPending($absolutePath, $pendingPath);
+            }
+        }
+
+        if ($mediaType === 'audio') {
+            $optimized = $this->audioOptimizationService->optimize($absolutePath, $expectedMime);
+            $absolutePath = $optimized['absolute_path'];
+            $expectedMime = $optimized['mime_type'];
+            $outputExtension = $optimized['extension'];
+            $durationSeconds = $optimized['duration_seconds'];
+            if ($absolutePath !== $this->storageDriver->absolutePath($pendingPath)) {
+                $this->storageDriver->delete($pendingPath);
+                $pendingPath = $this->replaceExtension($pendingPath, $outputExtension);
+                $this->moveOptimizedToPending($absolutePath, $pendingPath);
+            }
+        }
+
+        $finalPath = $this->pathResolver->buildFinalPath($file, $mediaType, $outputExtension);
         $this->moveFile($pendingPath, $finalPath);
 
         $sha256 = hash_file('sha256', $this->storageDriver->absolutePath($finalPath)) ?: '';
@@ -62,7 +94,33 @@ final class ConfirmFileService
         $file->markActive();
         $this->fileRepository->save($file);
 
-        return $this->serialize($file, $mediaType);
+        return $this->serialize($file, $mediaType, $durationSeconds);
+    }
+
+    private function moveOptimizedToPending(string $absoluteSource, string $pendingRelativePath): void
+    {
+        $pendingAbsolute = $this->storageDriver->absolutePath($pendingRelativePath);
+        $directory = \dirname($pendingAbsolute);
+        if (!is_dir($directory)) {
+            mkdir($directory, 0775, true);
+        }
+
+        if (!rename($absoluteSource, $pendingAbsolute)) {
+            $stream = fopen($absoluteSource, 'rb');
+            if ($stream === false) {
+                throw new StorageException('Falha ao mover arquivo otimizado.', 'FILE_MOVE_FAILED', 500);
+            }
+            $this->storageDriver->putStream($pendingRelativePath, $stream);
+            fclose($stream);
+            unlink($absoluteSource);
+        }
+    }
+
+    private function replaceExtension(string $relativePath, string $extension): string
+    {
+        $base = preg_replace('/\.[^.]+$/', '', $relativePath);
+
+        return ($base ?? $relativePath).$extension;
     }
 
     private function moveFile(string $from, string $to): void
@@ -89,7 +147,7 @@ final class ConfirmFileService
     /**
      * @return array<string, mixed>
      */
-    private function serialize(StorageFile $file, string $mediaType): array
+    private function serialize(StorageFile $file, string $mediaType, ?float $durationSeconds = null): array
     {
         $dimensions = $this->resolveImageDimensions($file, $mediaType);
 
@@ -105,7 +163,7 @@ final class ConfirmFileService
         ];
 
         if ($mediaType === 'audio') {
-            $payload['duration_seconds'] = $this->audioProbeService->probeDuration(
+            $payload['duration_seconds'] = $durationSeconds ?? $this->audioProbeService->probeDuration(
                 $this->storageDriver->absolutePath($file->getRelativePath()),
             );
         }

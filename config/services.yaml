@@ -43,3 +43,14 @@ services:
     App\Application\Media\ImportYoutubeAudioService:
         arguments:
             $storageRoot: '%storage.root%'
+
+    App\Application\Media\ImageOptimizationService:
+        arguments:
+            $maxLongEdge: '%storage.image_max_long_edge%'
+            $webpQuality: '%storage.image_webp_quality%'
+            $jpegQuality: '%storage.image_jpeg_quality%'
+            $preferWebp: '%storage.image_prefer_webp%'
+
+    App\Application\Media\AudioOptimizationService:
+        arguments:
+            $maxBitrateKbps: '%storage.audio_max_bitrate_kbps%'

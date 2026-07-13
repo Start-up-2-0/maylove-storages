@@ -3,6 +3,11 @@ parameters:
     env(STORAGE_PUBLIC_URL): 'http://localhost'
     env(SERVICE_TOKEN_SECRET): 'build-placeholder-secret-min-32-chars'
     env(UPLOAD_MAX_SIZE_MB): '50'
+    env(IMAGE_MAX_LONG_EDGE): '2560'
+    env(IMAGE_WEBP_QUALITY): '82'
+    env(IMAGE_JPEG_QUALITY): '85'
+    env(IMAGE_PREFER_WEBP): '1'
+    env(AUDIO_MAX_BITRATE_KBPS): '128'
     env(DEFAULT_URI): 'http://localhost'
     cors_allow_origin_default: '^https?://.*$'
     default_uri: '%env(DEFAULT_URI)%'
@@ -10,6 +15,11 @@ parameters:
     storage.public_url: '%env(STORAGE_PUBLIC_URL)%'
     storage.service_token_secret: '%env(SERVICE_TOKEN_SECRET)%'
     storage.upload_max_size_mb: '%env(int:UPLOAD_MAX_SIZE_MB)%'
+    storage.image_max_long_edge: '%env(int:IMAGE_MAX_LONG_EDGE)%'
+    storage.image_webp_quality: '%env(int:IMAGE_WEBP_QUALITY)%'
+    storage.image_jpeg_quality: '%env(int:IMAGE_JPEG_QUALITY)%'
+    storage.image_prefer_webp: '%env(bool:IMAGE_PREFER_WEBP)%'
+    storage.audio_max_bitrate_kbps: '%env(int:AUDIO_MAX_BITRATE_KBPS)%'
     storage.upload_ticket_ttl_seconds: 900
     storage.url_min_ttl_seconds: 900
     storage.url_max_ttl_seconds: 86400

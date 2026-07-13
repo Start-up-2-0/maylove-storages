@@ -20,13 +20,20 @@ final class StoragePathResolver
         );
     }
 
-    public function buildFinalPath(StorageFile $file, string $mediaType): string
+    public function buildFinalPath(StorageFile $file, string $mediaType, ?string $extensionOverride = null): string
     {
-        $extension = $this->resolveExtension($file->getOriginalFilename(), $mediaType);
+        $extension = $extensionOverride ?? $this->resolveExtension($file->getOriginalFilename(), $mediaType);
 
         return match ($file->getContext()) {
             'tribute' => sprintf(
                 'tributes/%s/%s/%s%s',
+                $file->getContextId(),
+                $this->mediaFolder($mediaType),
+                (string) $file->getId(),
+                $extension,
+            ),
+            'album' => sprintf(
+                'albums/%s/%s/%s%s',
                 $file->getContextId(),
                 $this->mediaFolder($mediaType),
                 (string) $file->getId(),
