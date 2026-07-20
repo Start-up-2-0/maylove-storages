@@ -9,16 +9,14 @@ RUN apk add --no-cache \
         ffmpeg \
         python3 \
         py3-pip \
-        curl \
-        unzip \
+        nodejs \
         ca-certificates \
         $PHPIZE_DEPS \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j"$(nproc)" intl opcache gd pdo pdo_mysql \
-    && curl -fsSL https://deno.land/install.sh | DENO_INSTALL=/usr/local sh \
     && pip3 install --break-system-packages --no-cache-dir "yt-dlp[default]" \
     && yt-dlp --version \
-    && deno --version \
+    && node --version \
     && apk del $PHPIZE_DEPS
 
 COPY docker/php-railway.ini /usr/local/etc/php/conf.d/99-railway.ini

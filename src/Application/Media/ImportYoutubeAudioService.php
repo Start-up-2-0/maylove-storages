@@ -113,10 +113,10 @@ final class ImportYoutubeAudioService
             );
         }
 
-        exec('deno --version 2>&1', $denoOutput, $denoExitCode);
-        if ($denoExitCode !== 0) {
+        exec('node --version 2>&1', $nodeOutput, $nodeExitCode);
+        if ($nodeExitCode !== 0) {
             throw new StorageException(
-                'Importação do YouTube indisponível no servidor (runtime JS do Deno).',
+                'Importação do YouTube indisponível no servidor (runtime JS do Node).',
                 'YOUTUBE_UNAVAILABLE',
                 503,
             );
@@ -177,6 +177,7 @@ final class ImportYoutubeAudioService
         $template = $tempBase.'.%(ext)s';
         $commandParts = [
             'yt-dlp --no-playlist --no-warnings --socket-timeout 30 --retries 3',
+            '--js-runtimes node',
             '--remote-components ejs:github',
             '-f "ba/bestaudio/best" --extract-audio --audio-format mp3 --audio-quality 2',
         ];
