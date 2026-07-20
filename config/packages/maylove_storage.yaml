@@ -9,6 +9,7 @@ parameters:
     env(IMAGE_PREFER_WEBP): '1'
     env(AUDIO_MAX_BITRATE_KBPS): '128'
     env(DEFAULT_URI): 'http://localhost'
+    env(YOUTUBE_COOKIES_FILE): ''
     cors_allow_origin_default: '^https?://.*$'
     default_uri: '%env(DEFAULT_URI)%'
     storage.root: '%env(STORAGE_ROOT)%'
@@ -23,3 +24,4 @@ parameters:
     storage.upload_ticket_ttl_seconds: 900
     storage.url_min_ttl_seconds: 900
     storage.url_max_ttl_seconds: 86400
+    storage.youtube_cookies_file: '%env(default::YOUTUBE_COOKIES_FILE)%'
