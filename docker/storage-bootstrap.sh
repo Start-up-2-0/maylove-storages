@@ -52,3 +52,30 @@ if [ ! -f "${MARKER}" ]; then
 else
   echo "[maylove-storages] Volume persistente em ${STORAGE_ROOT} (desde $(cat "${MARKER}"))"
 fi
+
+YOUTUBE_COOKIES_TARGET="${YOUTUBE_COOKIES_FILE:-${STORAGE_ROOT}/platform/youtube-cookies.txt}"
+YOUTUBE_COOKIES_B64="$(printf '%s' "${YOUTUBE_COOKIES_B64:-}" | tr -d '\r\n\t ')"
+
+if [ -n "${YOUTUBE_COOKIES_B64}" ]; then
+  mkdir -p "$(dirname "${YOUTUBE_COOKIES_TARGET}")"
+  tmp="${YOUTUBE_COOKIES_TARGET}.tmp.$$"
+
+  if printf '%s' "${YOUTUBE_COOKIES_B64}" | base64 -d > "${tmp}" 2>/dev/null; then
+    first_line="$(head -n 1 "${tmp}" 2>/dev/null || true)"
+    case "${first_line}" in
+      *"Netscape HTTP Cookie File"*|*"HTTP Cookie File"*)
+        mv "${tmp}" "${YOUTUBE_COOKIES_TARGET}"
+        chmod 600 "${YOUTUBE_COOKIES_TARGET}"
+        echo "[maylove-storages] Cookies do YouTube materializados em ${YOUTUBE_COOKIES_TARGET}"
+        ;;
+      *)
+        rm -f "${tmp}"
+        echo "[maylove-storages] WARNING: YOUTUBE_COOKIES_B64 decodificado, mas não está em formato Netscape (cookies.txt)."
+        echo "[maylove-storages] Exporte com extensão 'Get cookies.txt LOCALLY' ou yt-dlp --cookies-from-browser."
+        ;;
+    esac
+  else
+    rm -f "${tmp}"
+    echo "[maylove-storages] WARNING: YOUTUBE_COOKIES_B64 inválido (base64). Importação YouTube seguirá sem cookies."
+  fi
+fi

@@ -67,7 +67,8 @@ Se `storage_persistent` for `error`, o volume não está anexado.
 | `DATABASE_URL` | MySQL 8 (banco `maylove_storages`, separado da API) |
 | `UPLOAD_MAX_SIZE_MB` | ex.: `50` |
 | `CORS_ALLOW_ORIGIN` | regex do domínio do app (ex.: `^https://maylove-app-staging\.up\.railway\.app$`) |
-| `YOUTUBE_COOKIES_FILE` | *(opcional)* caminho no volume para `cookies.txt` exportado do YouTube, se o IP do Railway for bloqueado |
+| `YOUTUBE_COOKIES_B64` | *(opcional)* base64 de um `cookies.txt` **Netscape** — gravado no volume a cada deploy (ideal sem shell/CLI) |
+| `YOUTUBE_COOKIES_FILE` | *(opcional)* caminho de destino; padrão `/var/maylove/storage/platform/youtube-cookies.txt` |
 
 ### Importação de áudio do YouTube
 
@@ -77,8 +78,22 @@ Se imports falharem com *"O YouTube bloqueou o download"*, o IP do datacenter Ra
 
 1. Redeploy da imagem (atualiza yt-dlp/Node).
 2. Testar outro vídeo.
-3. Configurar `YOUTUBE_COOKIES_FILE` apontando para um `cookies.txt` válido no volume persistente.
+3. Configurar cookies via **`YOUTUBE_COOKIES_B64`** (recomendado no Railway) ou subir `cookies.txt` no volume e apontar `YOUTUBE_COOKIES_FILE`.
 4. Como fallback, o usuário pode enviar MP3/MP4 manualmente.
+
+#### Cookies via `YOUTUBE_COOKIES_B64` (sem shell)
+
+1. No PC, com YouTube logado, exporte **cookies.txt** em formato **Netscape** (extensão *Get cookies.txt LOCALLY*).
+2. Gere o base64 (PowerShell):
+
+   ```powershell
+   [Convert]::ToBase64String([IO.File]::ReadAllBytes("cookies.txt"))
+   ```
+
+3. Railway → **maylove-storages** → **Variables** → `YOUTUBE_COOKIES_B64` = string colada (sem aspas).
+4. Redeploy. O bootstrap grava em `{STORAGE_ROOT}/platform/youtube-cookies.txt` (persiste no volume).
+
+**Não use JSON** — o yt-dlp só aceita Netscape. JSON exportado do navegador não funciona.
 
 **Importante:** no Railway, defina valores **sem aspas** (`prod`, não `"prod"`). Aspas no valor impedem as migrations e a tabela `files` não é criada.
 

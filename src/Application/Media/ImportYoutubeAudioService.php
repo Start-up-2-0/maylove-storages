@@ -182,8 +182,8 @@ final class ImportYoutubeAudioService
             '-f "ba/bestaudio/best" --extract-audio --audio-format mp3 --audio-quality 2',
         ];
 
-        $cookiesFile = trim($this->youtubeCookiesFile);
-        if ($cookiesFile !== '' && is_readable($cookiesFile)) {
+        $cookiesFile = $this->resolveYoutubeCookiesFile();
+        if ($cookiesFile !== '') {
             $commandParts[] = '--cookies '.escapeshellarg($cookiesFile);
         }
 
@@ -265,6 +265,21 @@ final class ImportYoutubeAudioService
         if ($exitCode !== 0 || !is_file($destination) || filesize($destination) === 0) {
             throw new StorageException('Falha ao converter áudio para MP3.', 'AUDIO_CONVERT_FAILED', 500);
         }
+    }
+
+    private function resolveYoutubeCookiesFile(): string
+    {
+        $configured = trim($this->youtubeCookiesFile);
+        if ($configured !== '' && is_readable($configured)) {
+            return $configured;
+        }
+
+        $default = rtrim($this->storageRoot, '/\\').'/platform/youtube-cookies.txt';
+        if (is_readable($default)) {
+            return $default;
+        }
+
+        return '';
     }
 
     private function buildDownloadErrorMessage(string $details): string
