@@ -43,6 +43,7 @@ services:
     App\Application\Media\ImportYoutubeAudioService:
         arguments:
             $storageRoot: '%storage.root%'
+            $youtubeCookiesFile: '%storage.youtube_cookies_file%'
 
     App\Application\Media\ImageOptimizationService:
         arguments:

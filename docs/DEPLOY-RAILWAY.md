@@ -67,6 +67,18 @@ Se `storage_persistent` for `error`, o volume não está anexado.
 | `DATABASE_URL` | MySQL 8 (banco `maylove_storages`, separado da API) |
 | `UPLOAD_MAX_SIZE_MB` | ex.: `50` |
 | `CORS_ALLOW_ORIGIN` | regex do domínio do app (ex.: `^https://maylove-app-staging\.up\.railway\.app$`) |
+| `YOUTUBE_COOKIES_FILE` | *(opcional)* caminho no volume para `cookies.txt` exportado do YouTube, se o IP do Railway for bloqueado |
+
+### Importação de áudio do YouTube
+
+O container instala **Deno** + **yt-dlp[default]** (scripts EJS exigidos pelo YouTube desde 2025/2026).
+
+Se imports falharem com *"O YouTube bloqueou o download"*, o IP do datacenter Railway provavelmente foi sinalizado. Mitigações:
+
+1. Redeploy da imagem (atualiza yt-dlp/Deno).
+2. Testar outro vídeo.
+3. Configurar `YOUTUBE_COOKIES_FILE` apontando para um `cookies.txt` válido no volume persistente.
+4. Como fallback, o usuário pode enviar MP3/MP4 manualmente.
 
 **Importante:** no Railway, defina valores **sem aspas** (`prod`, não `"prod"`). Aspas no valor impedem as migrations e a tabela `files` não é criada.
 

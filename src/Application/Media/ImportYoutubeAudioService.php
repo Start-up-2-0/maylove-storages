@@ -15,6 +15,14 @@ final class ImportYoutubeAudioService
 {
     private const MAX_DURATION_SECONDS = 600;
 
+    /** @var list<string|null> */
+    private const YOUTUBE_EXTRACTOR_STRATEGIES = [
+        'youtube:player_client=web,mweb,android',
+        'youtube:player_client=tv_embedded,web',
+        'youtube:player_client=android,web',
+        null,
+    ];
+
     public function __construct(
         private readonly StorageFileRepository $fileRepository,
         private readonly StorageDriverInterface $storageDriver,
@@ -22,6 +30,7 @@ final class ImportYoutubeAudioService
         private readonly AudioProbeService $audioProbeService,
         private readonly LoggerInterface $logger,
         private readonly string $storageRoot,
+        private readonly string $youtubeCookiesFile = '',
     ) {
     }
 
@@ -104,6 +113,15 @@ final class ImportYoutubeAudioService
             );
         }
 
+        exec('deno --version 2>&1', $denoOutput, $denoExitCode);
+        if ($denoExitCode !== 0) {
+            throw new StorageException(
+                'Importação do YouTube indisponível no servidor (runtime JS do Deno).',
+                'YOUTUBE_UNAVAILABLE',
+                503,
+            );
+        }
+
         exec('ffmpeg -version 2>&1', $ffmpegOutput, $ffmpegExitCode);
         if ($ffmpegExitCode !== 0) {
             throw new StorageException(
@@ -116,34 +134,90 @@ final class ImportYoutubeAudioService
 
     private function downloadYoutubeAudio(string $url, string $tempBase): string
     {
-        $template = $tempBase.'.%(ext)s';
-        $command = sprintf(
-            'yt-dlp --no-playlist --no-warnings --socket-timeout 30 --retries 3 '
-            .'-f "ba/bestaudio/best" --extract-audio --audio-format mp3 --audio-quality 2 '
-            .'--extractor-args %s -o %s %s 2>&1',
-            escapeshellarg('youtube:player_client=android,web'),
-            escapeshellarg($template),
-            escapeshellarg($url),
-        );
+        $lastDetails = '';
 
-        exec($command, $output, $exitCode);
+        foreach (self::YOUTUBE_EXTRACTOR_STRATEGIES as $extractorArgs) {
+            $this->cleanupTempFiles($tempBase);
 
-        if ($exitCode !== 0) {
-            $details = trim(implode("\n", array_slice($output, -8)));
-            $this->logger->error('yt-dlp falhou ao importar áudio.', [
+            [$exitCode, $output] = $this->runYtDlpDownload($url, $tempBase, $extractorArgs);
+            if ($exitCode === 0) {
+                return $this->locateDownloadedMp3($tempBase);
+            }
+
+            $lastDetails = trim(implode("\n", array_slice($output, -10)));
+            $this->logger->warning('yt-dlp falhou ao importar áudio; tentando estratégia alternativa.', [
                 'url' => $url,
+                'extractor_args' => $extractorArgs ?? 'default',
                 'exit_code' => $exitCode,
-                'output' => $details,
+                'output' => $lastDetails,
             ]);
 
-            throw new StorageException(
-                $this->buildDownloadErrorMessage($details),
-                'YOUTUBE_IMPORT_FAILED',
-                422,
-            );
+            if (!$this->shouldRetryYoutubeDownload($lastDetails)) {
+                break;
+            }
         }
 
-        return $this->locateDownloadedMp3($tempBase);
+        $this->logger->error('yt-dlp falhou ao importar áudio após todas as estratégias.', [
+            'url' => $url,
+            'output' => $lastDetails,
+        ]);
+
+        throw new StorageException(
+            $this->buildDownloadErrorMessage($lastDetails),
+            'YOUTUBE_IMPORT_FAILED',
+            422,
+        );
+    }
+
+    /**
+     * @return array{0: int, 1: list<string>}
+     */
+    private function runYtDlpDownload(string $url, string $tempBase, ?string $extractorArgs): array
+    {
+        $template = $tempBase.'.%(ext)s';
+        $commandParts = [
+            'yt-dlp --no-playlist --no-warnings --socket-timeout 30 --retries 3',
+            '--remote-components ejs:github',
+            '-f "ba/bestaudio/best" --extract-audio --audio-format mp3 --audio-quality 2',
+        ];
+
+        $cookiesFile = trim($this->youtubeCookiesFile);
+        if ($cookiesFile !== '' && is_readable($cookiesFile)) {
+            $commandParts[] = '--cookies '.escapeshellarg($cookiesFile);
+        }
+
+        if ($extractorArgs !== null) {
+            $commandParts[] = '--extractor-args '.escapeshellarg($extractorArgs);
+        }
+
+        $commandParts[] = '-o '.escapeshellarg($template);
+        $commandParts[] = escapeshellarg($url);
+        $commandParts[] = '2>&1';
+
+        exec(implode(' ', $commandParts), $output, $exitCode);
+
+        return [$exitCode, $output];
+    }
+
+    private function shouldRetryYoutubeDownload(string $details): bool
+    {
+        if ($details === '') {
+            return true;
+        }
+
+        if (str_contains($details, 'Private video') || str_contains($details, 'privado')) {
+            return false;
+        }
+
+        if (str_contains($details, 'Video unavailable') || str_contains($details, 'indispon')) {
+            return false;
+        }
+
+        return str_contains($details, 'Sign in to confirm')
+            || str_contains($details, 'bot')
+            || str_contains($details, 'LOGIN_REQUIRED')
+            || str_contains($details, 'HTTP Error 403')
+            || str_contains($details, 'Unable to extract');
     }
 
     private function locateDownloadedMp3(string $tempBase): string
